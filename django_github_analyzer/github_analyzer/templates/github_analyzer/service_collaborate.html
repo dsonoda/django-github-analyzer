@@ -1,3 +1,6 @@
+{# load custom template tags and filters #}
+{% load oauth_button %}
+
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -24,6 +27,6 @@
     </style>
 </head>
 <body>
-    <input type="button" value="{{ input_value }}" class="{{ input_class }}" onClick="location.href='{{ api_url }}'">
+    {% oauth_button api_url input_class input_value %}
 </body>
 </html>
