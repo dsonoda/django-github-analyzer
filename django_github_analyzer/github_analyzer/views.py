@@ -10,7 +10,7 @@ from github_analyzer import config
 
 class ServiceCollaborateView(View):
     """
-    Pages of form linking services through OAut authentication
+    Pages of form linking services through OAuth authentication
     """
     def get(self, request):
         """
@@ -58,7 +58,7 @@ class OauthCallbackView(View):
         api_url = config.get_user_information_uri.strip('/') + '?' + urllib.parse.urlencode(params)
         r = requests.get(api_url)
         user_info = r.json()
-        # regist
+        # regist user infomation by Github
         if models.UserInfo.objects.filter(login=user_info['login']).count() == 0:
             models.UserInfo.objects.create(
                 login=user_info['login'],
