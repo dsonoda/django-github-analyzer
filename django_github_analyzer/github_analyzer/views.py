@@ -59,13 +59,14 @@ class OauthCallbackView(View):
         r = requests.get(api_url)
         user_info = r.json()
         # regist
-        models.UserInfo.objects.create(
-            login=user_info['login'],
-            url=user_info['html_url'],
-            client_id=os.environ['GITHUB_OAUTH_CLIENT_ID'],
-            client_secret=os.environ['GITHUB_OAUTH_CLIENT_SECRET'],
-            access_token=access_token,
-            params=json.dumps(user_info)
-        )
+        if models.UserInfo.objects.filter(login=user_info['login']).count() == 0:
+            models.UserInfo.objects.create(
+                login=user_info['login'],
+                url=user_info['html_url'],
+                client_id=os.environ['GITHUB_OAUTH_CLIENT_ID'],
+                client_secret=os.environ['GITHUB_OAUTH_CLIENT_SECRET'],
+                access_token=access_token,
+                params=json.dumps(user_info)
+            )
 
         return render(request, 'github_analyzer/oauth_callback.html', {})
