@@ -1,5 +1,5 @@
 from django.db import models
-from github_analyzer import config
+from django_github_analyzer import config
 import time
 
 

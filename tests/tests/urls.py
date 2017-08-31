@@ -16,9 +16,9 @@ Including another URLconf
 from django.conf.urls import url,include
 from django.contrib import admin
 
-import github_analyzer.urls
+import django_github_analyzer.urls
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
-    url(r'^github_analyzer/', include(github_analyzer.urls, namespace='github_analyzer')),
+    url(r'^django_github_analyzer/', include(django_github_analyzer.urls, namespace='django_github_analyzer')),
 ]

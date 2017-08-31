@@ -1,5 +1,5 @@
 from django.conf.urls import url
-from github_analyzer.views import ServiceCollaborateView, OauthCallbackView
+from django_github_analyzer.views import ServiceCollaborateView, OauthCallbackView
 
 
 urlpatterns = [
