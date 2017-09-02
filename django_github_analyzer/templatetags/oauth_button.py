@@ -1,6 +1,6 @@
 from django import template
 from django.utils.safestring import mark_safe
-from github_analyzer import config
+from django_github_analyzer import config
 
 register = template.Library()
 

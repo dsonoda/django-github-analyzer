@@ -4,11 +4,6 @@ https://developer.github.com/apps/building-integrations/setting-up-and-registeri
 """
 
 """
-your project url
-"""
-site_url = 'http://192.168.33.10:8000'
-
-"""
 oauth/authorize uri
     method: get
     https://developer.github.com/apps/building-integrations/setting-up-and-registering-oauth-apps/about-authorization-options-for-oauth-apps/#1-users-are-redirected-to-request-their-github-identity
