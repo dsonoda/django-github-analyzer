@@ -109,3 +109,7 @@ Vagrantfile
 
 #sqlite3
 db.sqlite3
+
+#migration
+/django_github_analyzer/migrations/*
+!/django_github_analyzer/migrations/__init__.py
