@@ -2,118 +2,116 @@ import os
 import urllib.parse
 import requests
 from django_github_analyzer import config
+from django.conf import settings
 
 
 class Oauth():
-    """
-    OAuth authentication module.
+    """OAuth authentication module.
     """
 
-    "Github client id"
+    """Github client id
+    :type: string or None
+    """
     __client_id = None
-    "Github client secret"
-    __client_secret = None
-    "my project url (ex. https://yoursiteurl.com"
-    __site_url = None
 
+    """Github client secret
+    :type: string or None
+    """
+    __client_secret = None
+
+    """Github callback uri
+    :type: string or None
+    """
+    __callback_uri = None
 
     def __init__(self, **args):
-        """
-        Constructor
-        :param client_id (*Required): github application client id
-        :param client_secret (*Required): github application client secret
-        :param site_url: my project url (ex. https://yoursiteurl.com
+        """Initial settings.
+        :param client_id (string): Github application client id.
+        :param client_secret (string): Github application client secret.
+        :param callback_uri (string): Github oauth callback uri.
         """
         # set github client id
         if 'client_id' in args:
             self.__set_client_id(args['client_id'])
-        elif os.environ.get("GITHUB_OAUTH_CLIENT_ID") != None:
-            self.__set_client_id(os.environ.get("GITHUB_OAUTH_CLIENT_ID"))
+        elif os.environ.get('GITHUB_OAUTH_CLIENT_ID') != None:
+            self.__set_client_id(os.environ.get('GITHUB_OAUTH_CLIENT_ID'))
+
         # set github client secret
         if 'client_secret' in args:
             self.__set_client_secret(args['client_secret'])
-        elif os.environ.get("GITHUB_OAUTH_CLIENT_SECRET") != None:
-            self.__set_client_secret(os.environ.get("GITHUB_OAUTH_CLIENT_SECRET"))
-        # set site url
-        if 'site_url' in args:
-            self.__set_site_url(args['site_url'])
+        elif os.environ.get('GITHUB_OAUTH_CLIENT_SECRET') != None:
+            self.__set_client_secret(os.environ.get('GITHUB_OAUTH_CLIENT_SECRET'))
 
         if self.get_client_id() == None or self.get_client_secret() == None:
             raise Exception("error! Argument is missing.")
 
+        # set callback url
+        if 'callback_uri' in args:
+            self.__set_callback_uri(args['callback_uri'])
+        else:
+            try:
+                self.__set_callback_uri(settings.GITHUB_OAUTH_CALLBACK_URI)
+            except:
+                raise Exception("error! Argument is missing.")
 
     def __set_client_id(self, client_id):
-        """
-        setter github client id
-        :param client_id:
-        :return:
+        """Setter github client id.
+        :param client_id (string): Github application client id.
         """
         self.__client_id = client_id
 
-
     def get_client_id(self):
-        """
-        getter github client id
-        :return:
+        """Getter github client id.
+        :return: string
         """
         return self.__client_id
 
-
     def __set_client_secret(self, client_secret):
-        """
-        setter github client secret
-        :param client_secret:
-        :return:
+        """Setter github client secret.
+        :param client_secret (string): Github application client secret.
         """
         self.__client_secret = client_secret
 
-
     def get_client_secret(self):
-        """
-        getter github client secret
-        :return:
+        """Getter github client secret.
+        :return: string
         """
         return self.__client_secret
 
-
-    def __set_site_url(self, site_url):
+    def __set_callback_uri(self, callback_uri):
+        """Setter oauth callback uri.
+        :param callback_uri (string): Github oauth callback uri.
         """
-        setter mysite url
-        :param site_url:
-        :return:
-        """
-        self.__site_url = site_url
+        self.__callback_uri = callback_uri
 
-
-    def get_site_url(self):
+    def get_callback_uri(self):
+        """Getter oauth callback uri.
+        :return: string
         """
-        getter mysite url
-        :return:
-        """
-        return self.__site_url
-
+        return self.__callback_uri
 
     def get_oauth_authorize_uri(self):
+        """Get github OAuth api url.
+        :return: string
         """
-        Get Github OAuth api url
-        :return:
-        """
-        params = {'client_id': self.__client_id}
-        if self.get_site_url() != None:
-            params['redirect_uri'] = self.get_site_url().strip('/') + '/' + config.django_callback_url.strip('/')
-        if len(config.scope) != 0:
-            params['scope'] = config.scope
+        params = {
+            'client_id': self.get_client_id(),
+            'redirect_uri': self.get_callback_uri(),
+        }
+        try:
+            if len(settings.GITHUB_OAUTH_URI_PARAMS_SCOPE):
+                params['scope'] = settings.GITHUB_OAUTH_URI_PARAMS_SCOPE
+        except:
+            pass
         return config.oauth_authorize_uri.strip('/') + '/?' + urllib.parse.urlencode(params, quote_via=urllib.parse.quote)
 
-
     def get_access_token(self, code):
-        """
-        Get Github Access Token
+        """Get github access token.
         :param code:
-        :return:
+        :return: string
         """
         if len(code) == 0:
-            return ''
+            raise Exception("error! Argument is missing.")
         params = {
             'client_id': self.__client_id,
             'client_secret': self.__client_secret,
