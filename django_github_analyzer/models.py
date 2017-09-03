@@ -1,6 +1,4 @@
 from django.db import models
-from django_github_analyzer import config
-import time
 
 
 class UserInfo(models.Model):

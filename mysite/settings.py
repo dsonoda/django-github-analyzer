@@ -76,8 +76,12 @@ WSGI_APPLICATION = 'mysite.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': 'mysite',
+        'USER': 'mysite',
+        'PASSWORD': 'password',
+        'HOST': 'localhost',
+        'PORT': '5432',
     }
 }
 
@@ -119,3 +123,24 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/1.11/howto/static-files/
 
 STATIC_URL = '/static/'
+
+
+"""Oauth callback uri
+:see: https://developer.github.com/apps/building-integrations/setting-up-and-registering-oauth-apps/registering-oauth-apps/#registering-oauth-apps
+      7. In "Authorization callback URL", type the callback URL of your app.
+:example: http://example.com/django_github_analyzer/oauth_callback/
+"""
+GITHUB_OAUTH_CALLBACK_URI = 'http://192.168.33.10:8000/django_github_analyzer/oauth_callback/'
+
+"""Oauth uri scope parameters
+:see: https://developer.github.com/apps/building-integrations/setting-up-and-registering-oauth-apps/about-scopes-for-oauth-apps/
+:example: 'user public_repo gist'
+    delimiters: space
+"""
+GITHUB_OAUTH_URI_PARAMS_SCOPE = ''
+
+# OAuth button input value
+GITHUB_OAUTH_BUTTON_VALUE = 'Github OAuth'
+
+# OAuth button class name
+GITHUB_OAUTH_BUTTON_CLASS = 'square_btn'
