@@ -7,6 +7,7 @@ from django_github_analyzer import authentications
 from django_github_analyzer import githubs
 from django.conf import settings
 
+from github import Github
 
 class ServiceCollaborateView(View):
     """Pages of form linking services through OAuth authentication.
@@ -51,16 +52,11 @@ class OauthCallbackView(View):
         oauth = authentications.Oauth()
         access_token = oauth.get_access_token(request.GET.get('code'))
 
+        # github object
+        github = githubs.ModelGithub(access_token)
+
         # get github user information & regist github user information to database
-        user_info = githubs.ModelGithub(access_token).get_user_info()
-        if models.UserInfo.objects.filter(login=user_info['login']).count() == 0:
-            models.UserInfo.objects.create(
-                login=user_info['login'],
-                url=user_info['html_url'],
-                client_id=oauth.get_client_id(),
-                client_secret=oauth.get_client_secret(),
-                access_token=access_token,
-                params=json.dumps(user_info)
-            )
+        user_info = github.get_user_info()
+        models.UserInfo.objects.registOrUpdateData(user_info['login'], access_token, user_info)
 
         return render(request, 'django_github_analyzer/oauth_callback.html', {})
