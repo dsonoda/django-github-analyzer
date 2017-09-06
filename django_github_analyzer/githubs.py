@@ -9,6 +9,9 @@ class ModelGithub():
     """Github information module.
     """
 
+    # PyGithub object
+    __github = None
+
     """Github access token
     :type: string or None
     """
@@ -18,6 +21,8 @@ class ModelGithub():
         """Initial settings.
         :param access_token (string): github application access token.
         """
+        # set PyGithub object
+        self.__github = Github(access_token)
         # set github access token
         if len(access_token) != 0:
             self.__set_access_token(access_token)
@@ -40,6 +45,16 @@ class ModelGithub():
         """Get user information by access token.
         :return: string
         """
+        u = self.__github.get_user()
+        # print(u.id)
+        # print(u.html_url)
+        # print(u.name)
+        # print(u.email)
+        # print(u.bio)
+        # print(u.location)
+        # print(u.company)
+
+
         params = {'access_token': self.get_access_token()}
         api_url = config.get_user_information_uri.strip('/') + '?' + urllib.parse.urlencode(params)
         r = requests.get(api_url)
