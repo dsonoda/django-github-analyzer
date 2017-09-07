@@ -70,13 +70,13 @@ class UserInfo(models.Model):
     """Github user information
     """
     # Github application access token
-    access_token = models.TextField(null=False)
+    access_token = models.CharField(null=False, max_length=100)
     # Github login
-    login = models.CharField(null=False, max_length=255)
+    login = models.CharField(null=False, max_length=100)
     # Github id
     github_id = models.IntegerField(null=True)
     # Github home url
-    html_url = models.TextField(null=True)
+    html_url = models.CharField(null=True, max_length=1000)
     # Github name
     name = models.CharField(null=True, max_length=255)
     # Github email
@@ -86,7 +86,7 @@ class UserInfo(models.Model):
     # Github location
     location = models.CharField(null=True, max_length=255)
     # Github company
-    company = models.TextField(null=True)
+    company = models.CharField(null=True, max_length=255)
     # Github other data（format:JSON）
     params = models.TextField(null=True)
     # registed datetime
