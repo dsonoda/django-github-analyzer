@@ -110,4 +110,11 @@ class UserInfo(models.Model):
 
 
 class Repository(models.Model):
-    pass
+    """Github repository information
+        UserInfo:Repository=One:Many
+    """
+    # Github user
+    user = models.ForeignKey(UserInfo, on_delete=models.CASCADE)
+
+
+

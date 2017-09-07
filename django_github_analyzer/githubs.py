@@ -16,6 +16,7 @@ class ModelGithub():
         # set PyGithub object
         self.main = Github(access_token)
         self.user = self.main.get_user()
+        self.repositories = self.user.get_repos()
 
     def get_user_info(self):
         """Get user information.
@@ -56,3 +57,9 @@ class ModelGithub():
             'updated_at': str(self.user.updated_at),
             'url': self.user.url,
         }
+
+    def get_repos_info(self):
+        """Get repositories information.
+        :return: dict
+        """
+        self.repositories

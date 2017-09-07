@@ -19,6 +19,13 @@ class ServiceCollaborateView(View):
         :return: render
         """
         # set input button value
+
+        # g = Github("bd8b214691385f96c9106a3e14634666e518e5d4")
+        # for repo in g.get_user().get_repos():
+        #     print(repo.full_name)
+
+
+
         input_value = ''
         try:
             input_value = settings.GITHUB_OAUTH_BUTTON_VALUE
