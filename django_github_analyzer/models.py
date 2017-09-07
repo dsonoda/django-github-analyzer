@@ -12,47 +12,49 @@ class UserInfoQuerySet(models.query.QuerySet):
         """
         return self.filter(login=login, deleted=False)
 
-    def registOrUpdateData(self, login, access_token, user_info):
-        """Regist or update data
-        :param login: Github login
-        :param access_token: Github application access token
-        :param user_info: Github other data（format:JSON）
+    def registData(self, login, access_token, user_info):
+        """Regist user data
+        :param login (string): Github login
+        :param access_token (string): Github application access token
+        :param user_info (dict): Github other data
         :return:
         """
-        if self.registered(login).count() >= 1:
-            # update
-            s = self.get(login=login, deleted=False)
-            s.access_token = access_token
-            if 'id' in user_info:
-                s.github_id = user_info['id']
-            if 'html_url' in user_info:
-                s.html_url = user_info['html_url']
-            if 'name' in user_info:
-                s.name = user_info['name']
-            if 'email' in user_info:
-                s.email = user_info['email']
-            if 'bio' in user_info:
-                s.bio = user_info['bio']
-            if 'location' in user_info:
-                s.location = user_info['location']
-            if 'company' in user_info:
-                s.company = user_info['company']
-            s.params = json.dumps(user_info)
-            return s.save()
-        else:
-            # insert
-            return self.create(
-                access_token=access_token,
-                login=login,
-                github_id=user_info['id'] if 'id' in user_info else '',
-                html_url=user_info['html_url'] if 'html_url' in user_info else '',
-                name=user_info['name'] if 'name' in user_info else '',
-                email=user_info['email'] if 'email' in user_info else '',
-                bio=user_info['bio'] if 'bio' in user_info else '',
-                location=user_info['location'] if 'location' in user_info else '',
-                company=user_info['company'] if 'company' in user_info else '',
-                params=json.dumps(user_info),
-            )
+        return self.create(
+            access_token=access_token,
+            login=login,
+            github_id=user_info['id'] if 'id' in user_info else '',
+            html_url=user_info['html_url'] if 'html_url' in user_info else '',
+            name=user_info['name'] if 'name' in user_info else '',
+            email=user_info['email'] if 'email' in user_info else '',
+            bio=user_info['bio'] if 'bio' in user_info else '',
+            location=user_info['location'] if 'location' in user_info else '',
+            company=user_info['company'] if 'company' in user_info else '',
+            params=json.dumps(user_info)
+        )
+
+    def updateData(self, login, user_info):
+        """Update user data
+        :param login (string): Github login
+        :param user_info (dict): Github other data
+        :return:
+        """
+        s = self.get(login=login, deleted=False)
+        if 'id' in user_info:
+            s.github_id = user_info['id']
+        if 'html_url' in user_info:
+            s.html_url = user_info['html_url']
+        if 'name' in user_info:
+            s.name = user_info['name']
+        if 'email' in user_info:
+            s.email = user_info['email']
+        if 'bio' in user_info:
+            s.bio = user_info['bio']
+        if 'location' in user_info:
+            s.location = user_info['location']
+        if 'company' in user_info:
+            s.company = user_info['company']
+        s.params = json.dumps(user_info)
+        return s.save()
 
 class UserInfoManager(models.Manager):
     """UserInfo Manager Class
@@ -63,8 +65,11 @@ class UserInfoManager(models.Manager):
     def registered(self, login):
         return self.get_query_set().registered(login)
 
-    def registOrUpdateData(self, login, access_token, user_info):
-        return self.get_query_set().registOrUpdateData(login, access_token, user_info)
+    def registData(self, login, access_token, user_info):
+        return self.get_query_set().registData(login, access_token, user_info)
+
+    def updateData(self, login, user_info):
+        return self.get_query_set().updateData(login, user_info)
 
 class UserInfo(models.Model):
     """Github user information

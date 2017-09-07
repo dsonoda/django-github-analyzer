@@ -57,6 +57,6 @@ class OauthCallbackView(View):
 
         # get github user information & regist github user information to database
         user_info = github.get_user_info()
-        models.UserInfo.objects.registOrUpdateData(user_info['login'], access_token, user_info)
+        models.UserInfo.objects.registData(user_info['login'], access_token, user_info)
 
         return render(request, 'django_github_analyzer/oauth_callback.html', {})
