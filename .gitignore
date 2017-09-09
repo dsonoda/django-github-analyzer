@@ -113,3 +113,6 @@ db.sqlite3
 #migration
 /django_github_analyzer/migrations
 
+# github codes
+github_codes/*
+!github_codes/.gitignore
