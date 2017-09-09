@@ -1,5 +1,6 @@
 from django.db import models
 import json
+from django_github_analyzer import config
 
 
 class UserInfoQuerySet(models.query.QuerySet):
@@ -96,28 +97,24 @@ class UserInfo(models.Model):
     params = models.TextField(null=True)
     # registed datetime
     created = models.DateTimeField(auto_now_add=True)
-    """
-    delete flg
-        True: record used in the system
-        False: record not used in the system
+    """delete flg
+        True: record not used in the system
+        False: record used in the system
     """
     deleted = models.BooleanField(u'delete flg', default=False)
-
-    # def __str__(self):
-    #     return self.login
 
     objects = UserInfoManager()
 
 class RepositoryQuerySet(models.query.QuerySet):
     """Repository QuerySet Class
     """
-    def registered(self, user, name):
+    def registered(self, user_info, name):
         """Confirm repository's registration
-        :param user: Github user
+        :param user_info: Github user
         :param name: Github repository name
         :return: True: registed / False: not registed
         """
-        return self.filter(user=user, name=name, deleted=False)
+        return self.filter(user_info=user_info, name=name, deleted=False)
 
     def registData(self, user_info, name, repository_info):
         """Regist user data
@@ -128,7 +125,7 @@ class RepositoryQuerySet(models.query.QuerySet):
         """
         # raise Exception(repository_info['full_name'])
         return self.create(
-            user=user_info,
+            user_info=user_info,
             name=name,
             github_id=repository_info['id'] if 'id' in repository_info else '',
             full_name=repository_info['full_name'] if 'full_name' in repository_info else '',
@@ -146,14 +143,14 @@ class RepositoryQuerySet(models.query.QuerySet):
             params=json.dumps(repository_info)
         )
 
-    def updateData(self, user, name, repository_info):
+    def updateData(self, user_info_login, name, repository_info):
         """Update user data
-        :param user : UserInfo
+        :param user_info_login : UserInfo.login
         :param name (string): Github repository name
         :param repository_info (dict): Github other data
         :return:
         """
-        r = self.get(user=user, name=name, deleted=False)
+        r = self.get(user_info__login=user_info_login, name=name, deleted=False)
         if 'github_id' in repository_info:
             r.github_id = repository_info['github_id']
         if 'full_name' in repository_info:
@@ -180,8 +177,36 @@ class RepositoryQuerySet(models.query.QuerySet):
             r.created_at = repository_info['created_at']
         if 'updated_at' in repository_info:
             r.updated_at = repository_info['updated_at']
+        if 'pull_at' in repository_info:
+            r.pull_at = repository_info['pull_at']
         r.params = json.dumps(repository_info)
+        if 'analysis_result' in repository_info:
+            r.analysis_result = json.dumps(repository_info['analysis_result'])
         return r.save()
+
+    def get_param_value(self, param_name, user_info_login, name):
+        """
+        Get Value from 'param' column values
+        :param param_name (string):
+        :param user_info_login (string): UserInfo.login
+        :param name (string): repository name
+        :return (string): parameter value
+        """
+        params = models.Repository.objects.get(user_info__login=user_info_login, name=name).params
+        params = json.loads(params)
+        return params[param_name] if param_name in params else None
+
+    def get_analysis_value(self, analysis_name, user_info_login, name):
+        """
+        Get Value from 'analysis_result' column values
+        :param analysis_name (string):
+        :param user_info_login (string): UserInfo.login
+        :param name (string): repository name
+        :return (string): analysis_result parameter value
+        """
+        analysis_result = models.Repository.objects.get(user_info__login=user_info_login, name=name).analysis_result
+        analysis_result = json.loads(analysis_result)
+        return analysis_result[analysis_name] if analysis_name in analysis_result else None
 
 class RepositoryManager(models.Manager):
     """Repository Manager Class
@@ -189,21 +214,27 @@ class RepositoryManager(models.Manager):
     def get_query_set(self):
         return RepositoryQuerySet(self.model)
 
-    def registered(self, user, name):
-        return self.get_query_set().registered(user, name)
+    def registered(self, user_info, name):
+        return self.get_query_set().registered(user_info, name)
 
-    def registData(self, user, name, repository_info):
-        return self.get_query_set().registData(user, name, repository_info)
+    def registData(self, user_info, name, repository_info):
+        return self.get_query_set().registData(user_info, name, repository_info)
 
-    def updateData(self, user, name, repository_info):
-        return self.get_query_set().updateData(user, name, repository_info)
+    def updateData(self, user_info_login, name, repository_info):
+        return self.get_query_set().updateData(user_info_login, name, repository_info)
+
+    def get_param_value(self, param_name, user_info_login, name):
+        return self.get_query_set().get_param_value(param_name, user_info_login, name)
+
+    def get_analysis_value(self, analysis_name, user_info_login, name):
+        return self.get_query_set().get_analysis_value(analysis_name, user_info_login, name)
 
 class Repository(models.Model):
     """Github repository information
         UserInfo:Repository=One:Many
     """
     # Github user
-    user = models.ForeignKey(UserInfo, null=False, on_delete=models.CASCADE)
+    user_info = models.ForeignKey(UserInfo, null=False, on_delete=models.CASCADE)
     # Repository name
     name = models.CharField(null=True, max_length=255)
     # Repository id
@@ -232,16 +263,69 @@ class Repository(models.Model):
     created_at = models.DateTimeField(null=True)
     # Repository update time
     updated_at = models.DateTimeField(null=True)
+    # Pull date from Github
+    pull_at = models.DateTimeField(null=True)
     # Github other data（format:JSON）
     params = models.TextField(null=True)
-    """
-    delete flg
-        True: record used in the system
-        False: record not used in the system
+    # Analyzed result values（format:JSON）
+    analysis_result = models.TextField(null=True)
+    """delete flg
+        True: record not used in the system
+        False: record used in the system
     """
     deleted = models.BooleanField(u'delete flg', default=False)
 
-    def __str__(self):
-        return self.name
-
     objects = RepositoryManager()
+
+class TaskQuerySet(models.query.QuerySet):
+    """Task QuerySet Class
+    """
+    def get_status(self, mode, **args):
+        """
+        Get Task status
+        :param mode (integer): see: config.TASK_MODE_CHOICES
+        :param args (dict): key is 'queue_id' or ('user_info_login' and 'repository_name')
+        :return (integer): config.TASK_STATUS_CHOICES key
+        """
+        obj = self.filter(mode=mode, deleted=False)
+        if 'queue_id' in args:
+            obj.filter(queue_id=args['queue_id'])
+        elif 'user_info_login' in args and 'repository_name' in args:
+            obj.filter(user_info__login=args['user_info_login'], repository__name=args['repository_name'])
+        else:
+            raise Exception('Required argument is missing.')
+        return obj.values('status')[0]['status']
+
+class TaskManager(models.Manager):
+    """Task Manager Class
+    """
+    def get_queryset(self):
+        return TaskQuerySet(self.model, using=self._db)
+
+    def get_status(self, mode, **args):
+        return self.get_queryset().get_status(mode, args)
+
+class Task(models.Model):
+    """Task information
+    """
+    # SyncStatus.queue_id
+    queue_id = models.CharField(null=False, max_length=50)
+    # task status
+    status = models.IntegerField(null=False, choices=config.TASK_STATUS_CHOICES)
+    # Task mode
+    mode = models.IntegerField(null=False, choices=config.TASK_MODE_CHOICES)
+    # Github user
+    user_info = models.ForeignKey(UserInfo, null=True, on_delete=models.CASCADE)
+    # Github Repository
+    repository = models.ForeignKey(Repository, null=True, on_delete=models.CASCADE)
+    # start datetime
+    start = models.DateTimeField(auto_now_add=True)
+    # end datetime
+    end = models.DateTimeField(null=True, blank=True)
+    """delete flg
+        True: record not used in the system
+        False: record used in the system
+    """
+    deleted = models.BooleanField(u'delete flg', default=False)
+
+    objects = TaskManager()

@@ -32,10 +32,13 @@ class ServiceCollaborateView(View):
         except:
             pass
 
+        # get github oauth url
+        api_url = authentications.Oauth().get_oauth_authorize_uri()
+
         return render(request, 'django_github_analyzer/service_collaborate.html', {
             'input_value': input_value,
             'input_class': input_class,
-            'api_url': authentications.Oauth().get_oauth_authorize_uri(),
+            'api_url': api_url,
         })
 
 
