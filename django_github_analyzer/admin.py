@@ -3,8 +3,12 @@ from django_github_analyzer import models
 
 @admin.register(models.UserInfo)
 class UserInfoAdmin(admin.ModelAdmin):
-    pass
+    list_display = ('login', 'name', 'html_url', 'deleted')
 
 @admin.register(models.Repository)
 class RepositoryAdmin(admin.ModelAdmin):
-    pass
+    list_display = ('full_name', 'language', 'git_url', 'private', 'fork', 'updated_at', 'pull_at', 'deleted')
+
+@admin.register(models.Task)
+class TaskAdmin(admin.ModelAdmin):
+    list_display = ('queue_id', 'status', 'mode', 'user_info', 'repository', 'start', 'end', 'deleted')
