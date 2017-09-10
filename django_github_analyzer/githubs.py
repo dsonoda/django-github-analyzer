@@ -225,29 +225,48 @@ class ModelGithub():
         }
         return information
 
-    def git_clone(self, repository_name, access_token=None):
+    def git_clone(self, git_url, user_info_login, repository_name):
         """Git clone from Github
-        :param repository_name (string): Repository name
-        :param access_token (string): user access token
+        :param git_url: clone url
+        :param user_info_login : UserInfo.login
+        :param repository_name: Repository.name
         :return (boolean): True: success / False: failed
         """
-        self.set_access_token(access_token)
-
-        # source code save path
-        user_information = self.get_user_info()
-        user_dir = self.get_github_src_path() + user_information['login'] + '/'
+        user_dir = self.get_github_src_path() + user_info_login + '/'
         save_path = user_dir + repository_name
-
-        if os.path.exists(save_path):
-            return True
-
         try:
             os.makedirs(user_dir, mode=0o777, exist_ok=True)
-            repository_information = self.get_repository_info(repository_name)
-            subprocess.run(["git", "clone", repository_information['git_url'], save_path], check=True)
+            subprocess.run(["git", "clone", git_url, save_path], check=True)
             return True
         except subprocess.CalledProcessError as e:
             return False
+
+
+
+
+    # def git_clone(self, repository_name, access_token=None):
+    #     """Git clone from Github
+    #     :param repository_name (string): Repository name
+    #     :param access_token (string): user access token
+    #     :return (boolean): True: success / False: failed
+    #     """
+    #     self.set_access_token(access_token)
+    #
+    #     # source code save path
+    #     user_information = self.get_user_info()
+    #     user_dir = self.get_github_src_path() + user_information['login'] + '/'
+    #     save_path = user_dir + repository_name
+    #
+    #     if os.path.exists(save_path):
+    #         return True
+    #
+    #     try:
+    #         os.makedirs(user_dir, mode=0o777, exist_ok=True)
+    #         repository_information = self.get_repository_info(repository_name)
+    #         subprocess.run(["git", "clone", repository_information['git_url'], save_path], check=True)
+    #         return True
+    #     except subprocess.CalledProcessError as e:
+    #         return False
 
     def get_repository_info_value(self, param_name, repository_name, access_token=None):
         """Get Value from Git repository information

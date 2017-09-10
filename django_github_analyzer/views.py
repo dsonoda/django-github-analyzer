@@ -16,6 +16,20 @@ class ServiceCollaborateView(View):
         :param request :
         :return: render
         """
+
+
+        # 8faf2da99c9b05f15a13b8e37e01e928013660cf
+        # github = githubs.ModelGithub()
+        github = githubs.ModelGithub(access_token="8faf2da99c9b05f15a13b8e37e01e928013660cf")
+        # github.set_access_token("8faf2da99c9b05f15a13b8e37e01e928013660cf")
+        # raise Exception(github.get_user_info("8faf2da99c9b05f15a13b8e37e01e928013660cf"))
+        # raise Exception(github.get_user_info())
+        res = github.git_clone('git://github.com/dsonoda/template-tweeter.git', 'dsonoda', 'template-tweeter')
+        raise Exception(res)
+
+
+
+
         # get github oauth url
         api_url = authentications.Oauth().get_oauth_authorize_uri()
         # set input button class name
