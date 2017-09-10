@@ -108,7 +108,7 @@ class Oauth():
                 params['scope'] = settings.GITHUB_OAUTH_URI_PARAMS_SCOPE
         except:
             pass
-        return config.oauth_authorize_uri.strip('/') + '/?' + urllib.parse.urlencode(params, quote_via=urllib.parse.quote)
+        return config.OAUTH_AUTHORIZE_URI.strip('/') + '/?' + urllib.parse.urlencode(params, quote_via=urllib.parse.quote)
 
     def get_access_token(self, code):
         """Get github access token.
@@ -122,6 +122,6 @@ class Oauth():
             'client_secret': self.__client_secret,
             'code': code,
         }
-        api_url = config.oauth_access_token_uri.strip('/') + '/?' + urllib.parse.urlencode(params, quote_via=urllib.parse.quote)
+        api_url = config.OAUTH_ACCESS_TOKEN_URI.strip('/') + '/?' + urllib.parse.urlencode(params, quote_via=urllib.parse.quote)
         r = requests.post(api_url)
         return urllib.parse.parse_qs(r.text)['access_token'][0]
