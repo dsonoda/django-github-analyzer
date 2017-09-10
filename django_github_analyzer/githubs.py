@@ -4,6 +4,8 @@ This module for getting information necessary for analysis from Github using the
       http://pygithub.readthedocs.io/en/latest/index.html
 """
 
+import os
+import subprocess
 from github import Github
 
 
@@ -11,27 +13,47 @@ class ModelGithub():
     """PyGithub wrapper module.
     """
 
-    def __init__(self, access_token):
+    """Absolute path of directory of local environment for storing Github's source code.
+    If not specified, use environment information about .bashrc (GITHUB_SRC_PATH)
+    """
+    __github_src_path = None
+
+    def __init__(self, access_token, **args):
         """Initial settings.
         :param access_token (string): github application access token.
         """
-        """
-        Main class: Github
+        """Main class: Github
         http://pygithub.readthedocs.io/en/latest/github.html
         """
         self.main = Github(access_token)
 
-        """
-        AuthenticatedUser
+        """AuthenticatedUser
         :see: http://pygithub.readthedocs.io/en/latest/github_objects/AuthenticatedUser.html
         """
         self.user = self.main.get_user()
 
-        """
-        Repositories Pagination
+        """Repositories Pagination
         :see: http://pygithub.readthedocs.io/en/latest/github_objects/AuthenticatedUser.html#github.AuthenticatedUser.AuthenticatedUser.get_repos
         """
         self.repositories = self.user.get_repos()
+
+        # set github src path
+        if 'github_src_path' in args:
+            self.__set_github_src_path(args['github_src_path'])
+        elif os.environ.get('GITHUB_SRC_PATH') != None:
+            self.__set_github_src_path(os.environ.get('GITHUB_SRC_PATH'))
+
+    def __set_github_src_path(self, github_src_path):
+        """Setter github src path.
+        :param github_src_path (string): Absolute path of directory of local environment for storing Github's source code.
+        """
+        self.__github_src_path = github_src_path.strip('/') + '/'
+
+    def get_github_src_path(self):
+        """Getter github src path.
+        :return: string
+        """
+        return self.__github_src_path
 
     def get_user_info(self):
         """Get user information.
