@@ -139,8 +139,11 @@ GITHUB_OAUTH_CALLBACK_URI = 'http://192.168.33.10:8000/django_github_analyzer/oa
 """
 GITHUB_OAUTH_URI_PARAMS_SCOPE = ''
 
+# OAuth button class name
+GITHUB_OAUTH_BUTTON_CLASS = 'square_btn'
+
 # OAuth button input value
 GITHUB_OAUTH_BUTTON_VALUE = 'Github OAuth'
 
-# OAuth button class name
-GITHUB_OAUTH_BUTTON_CLASS = 'square_btn'
+# OAuth button input id
+GITHUB_OAUTH_BUTTON_ID = 'github_oauth'

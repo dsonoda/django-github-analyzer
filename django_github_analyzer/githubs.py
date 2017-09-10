@@ -248,3 +248,14 @@ class ModelGithub():
             return True
         except subprocess.CalledProcessError as e:
             return False
+
+    def get_repository_info_value(self, param_name, repository_name, access_token=None):
+        """Get Value from Git repository information
+        :param param_name (string):
+        :param repository_name (string): Repository name
+        :param access_token (string): user access token
+        :return (string): parameter value
+        """
+        self.set_access_token(access_token)
+        repository_information = self.get_repository_info(repository_name)
+        return repository_information[param_name] if param_name in repository_information else None
