@@ -65,7 +65,7 @@ class ModelGithub():
     def set_access_token(self, access_token=None):
         """
         set access token and Github objects
-        :param access_token:
+        :param access_token (string): user access token
         :return:
         """
         if access_token is not None:
@@ -79,7 +79,7 @@ class ModelGithub():
         """Setter github src path.
         :param github_src_path (string): Absolute path of directory of local environment for storing Github's source code.
         """
-        self.__github_src_path = github_src_path.strip('/') + '/'
+        self.__github_src_path = '/' + github_src_path.strip('/') + '/'
 
     def get_github_src_path(self):
         """Getter github src path.
@@ -89,6 +89,7 @@ class ModelGithub():
 
     def get_user_info(self, access_token=None):
         """Get user information.
+        :param access_token (string): user access token
         :return: dict
         """
         self.set_access_token(access_token)
@@ -133,6 +134,7 @@ class ModelGithub():
 
     def get_repository_names(self, access_token=None):
         """Get repositories name.
+        :param access_token (string): user access token
         :return: list
         """
         self.set_access_token(access_token)
@@ -144,7 +146,8 @@ class ModelGithub():
 
     def get_repository_info(self, repository_name, access_token=None):
         """Get repository information.
-        :param repository_name (string): Repository name
+        :param repository_name:
+        :param access_token (string): user access token
         :return: dict
         """
         self.set_access_token(access_token)
@@ -221,3 +224,27 @@ class ModelGithub():
             'watchers_count': repository.watchers_count,
         }
         return information
+
+    def git_clone(self, repository_name, access_token=None):
+        """Git clone from Github
+        :param repository_name (string): Repository name
+        :param access_token (string): user access token
+        :return (boolean): True: success / False: failed
+        """
+        self.set_access_token(access_token)
+
+        # source code save path
+        user_information = self.get_user_info()
+        user_dir = self.get_github_src_path() + user_information['login'] + '/'
+        save_path = user_dir + repository_name
+
+        if os.path.exists(save_path):
+            return True
+
+        try:
+            os.makedirs(user_dir, mode=0o777, exist_ok=True)
+            repository_information = self.get_repository_info(repository_name)
+            subprocess.run(["git", "clone", repository_information['git_url'], save_path], check=True)
+            return True
+        except subprocess.CalledProcessError as e:
+            return False
