@@ -13,7 +13,7 @@ class UserInfoQuerySet(models.query.QuerySet):
         """
         return self.filter(login=login, deleted=False)
 
-    def registData(self, login, access_token, user_info):
+    def regist_data(self, login, access_token, user_info):
         """Regist user data
         :param login (string): Github login
         :param access_token (string): Github application access token
@@ -33,7 +33,7 @@ class UserInfoQuerySet(models.query.QuerySet):
             params=json.dumps(user_info)
         )
 
-    def updateData(self, login, user_info):
+    def update_data(self, login, user_info):
         """Update user data
         :param login (string): Github login
         :param user_info (dict): Github other data
@@ -57,6 +57,17 @@ class UserInfoQuerySet(models.query.QuerySet):
         s.params = json.dumps(user_info)
         return s.save()
 
+    def get_param_value(self, param_name, login):
+        """
+        Get Value from 'param' column values
+        :param param_name (string):
+        :param login (string): UserInfo.login
+        :return (string): parameter value
+        """
+        params = self.get(login=login).params
+        params = json.loads(params)
+        return params[param_name] if param_name in params else None
+
 class UserInfoManager(models.Manager):
     """UserInfo Manager Class
     """
@@ -66,11 +77,14 @@ class UserInfoManager(models.Manager):
     def registered(self, login):
         return self.get_query_set().registered(login)
 
-    def registData(self, login, access_token, user_info):
-        return self.get_query_set().registData(login, access_token, user_info)
+    def regist_data(self, login, access_token, user_info):
+        return self.get_query_set().regist_data(login, access_token, user_info)
 
-    def updateData(self, login, user_info):
-        return self.get_query_set().updateData(login, user_info)
+    def update_data(self, login, user_info):
+        return self.get_query_set().update_data(login, user_info)
+
+    def get_param_value(self, param_name, login):
+        return self.get_query_set().get_param_value(param_name, login)
 
 class UserInfo(models.Model):
     """Github user information
@@ -105,6 +119,9 @@ class UserInfo(models.Model):
 
     objects = UserInfoManager()
 
+    def __str__(self):
+        return self.name
+
 class RepositoryQuerySet(models.query.QuerySet):
     """Repository QuerySet Class
     """
@@ -116,7 +133,7 @@ class RepositoryQuerySet(models.query.QuerySet):
         """
         return self.filter(user_info=user_info, name=name, deleted=False)
 
-    def registData(self, user_info, name, repository_info):
+    def regist_data(self, user_info, name, repository_info):
         """Regist user data
         :param user_info : UserInfo
         :param name (string): Github repository name
@@ -143,7 +160,7 @@ class RepositoryQuerySet(models.query.QuerySet):
             params=json.dumps(repository_info)
         )
 
-    def updateData(self, user_info_login, name, repository_info):
+    def update_data(self, user_info_login, name, repository_info):
         """Update user data
         :param user_info_login : UserInfo.login
         :param name (string): Github repository name
@@ -192,7 +209,7 @@ class RepositoryQuerySet(models.query.QuerySet):
         :param name (string): repository name
         :return (string): parameter value
         """
-        params = models.Repository.objects.get(user_info__login=user_info_login, name=name).params
+        params = self.get(user_info__login=user_info_login, name=name).params
         params = json.loads(params)
         return params[param_name] if param_name in params else None
 
@@ -204,7 +221,7 @@ class RepositoryQuerySet(models.query.QuerySet):
         :param name (string): repository name
         :return (string): analysis_result parameter value
         """
-        analysis_result = models.Repository.objects.get(user_info__login=user_info_login, name=name).analysis_result
+        analysis_result = self.get(user_info__login=user_info_login, name=name).analysis_result
         analysis_result = json.loads(analysis_result)
         return analysis_result[analysis_name] if analysis_name in analysis_result else None
 
@@ -217,11 +234,11 @@ class RepositoryManager(models.Manager):
     def registered(self, user_info, name):
         return self.get_query_set().registered(user_info, name)
 
-    def registData(self, user_info, name, repository_info):
-        return self.get_query_set().registData(user_info, name, repository_info)
+    def regist_data(self, user_info, name, repository_info):
+        return self.get_query_set().regist_data(user_info, name, repository_info)
 
-    def updateData(self, user_info_login, name, repository_info):
-        return self.get_query_set().updateData(user_info_login, name, repository_info)
+    def update_data(self, user_info_login, name, repository_info):
+        return self.get_query_set().update_data(user_info_login, name, repository_info)
 
     def get_param_value(self, param_name, user_info_login, name):
         return self.get_query_set().get_param_value(param_name, user_info_login, name)
@@ -277,6 +294,9 @@ class Repository(models.Model):
 
     objects = RepositoryManager()
 
+    def __str__(self):
+        return self.full_name
+
 class TaskQuerySet(models.query.QuerySet):
     """Task QuerySet Class
     """
@@ -329,3 +349,6 @@ class Task(models.Model):
     deleted = models.BooleanField(u'delete flg', default=False)
 
     objects = TaskManager()
+
+    def __str__(self):
+        return self.name

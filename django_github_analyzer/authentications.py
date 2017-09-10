@@ -1,3 +1,8 @@
+"""
+In this module, only processing related to OAuth authentication using the Github API is executed.
+:see: https://developer.github.com/apps/building-integrations/setting-up-and-registering-oauth-apps/registering-oauth-apps/
+"""
+
 import os
 import urllib.parse
 import requests
