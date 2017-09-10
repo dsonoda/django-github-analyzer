@@ -55,7 +55,7 @@ class OauthCallbackView(View):
         access_token = oauth.get_access_token(request.GET.get('code'))
 
         # github object
-        github = githubs.ModelGithub(access_token)
+        github = githubs.ModelGithub(access_token=access_token)
 
         # get github user information & regist to database
         user_info = github.get_user_info()
@@ -63,8 +63,8 @@ class OauthCallbackView(View):
 
         # get github repository information & regist to database
         user_info = models.UserInfo.objects.get(login=user_info['login'], deleted=False)
-        repo_names = github.get_repo_names()
-        for repo_name in repo_names:
-            models.Repository.objects.regist_data(user_info, repo_name, github.get_repo_info(repo_name))
+        repository_names = github.get_repository_names()
+        for repository_name in repository_names:
+            models.Repository.objects.regist_data(user_info, repository_name, github.get_repository_info(repository_name))
 
         return render(request, 'django_github_analyzer/oauth_callback.html', {})

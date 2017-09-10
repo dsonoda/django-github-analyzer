@@ -18,30 +18,62 @@ class ModelGithub():
     """
     __github_src_path = None
 
-    def __init__(self, access_token, **args):
+    def __init__(self, **args):
         """Initial settings.
-        :param access_token (string): github application access token.
+        :param args:
+            access_token (string): github application access token.
+            github_src_path (string): github source code save path.
         """
+
         """Main class: Github
         http://pygithub.readthedocs.io/en/latest/github.html
         """
-        self.main = Github(access_token)
+        self.main = None
 
         """AuthenticatedUser
         :see: http://pygithub.readthedocs.io/en/latest/github_objects/AuthenticatedUser.html
         """
-        self.user = self.main.get_user()
+        self.user = None
 
         """Repositories Pagination
         :see: http://pygithub.readthedocs.io/en/latest/github_objects/AuthenticatedUser.html#github.AuthenticatedUser.AuthenticatedUser.get_repos
         """
-        self.repositories = self.user.get_repos()
+        self.repositories = None
+
+        # set github access token
+        if 'access_token' in args:
+            self.set_access_token(args['access_token'])
 
         # set github src path
         if 'github_src_path' in args:
             self.__set_github_src_path(args['github_src_path'])
         elif os.environ.get('GITHUB_SRC_PATH') != None:
             self.__set_github_src_path(os.environ.get('GITHUB_SRC_PATH'))
+        else:
+            raise Exception('Required argument is missing.')
+
+    def isset_access_token(self):
+        """
+        is set access token
+        :return (boolean):
+        """
+        if self.main is not None and self.user is not None and self.repositories is not None:
+            return True
+        else:
+            return False
+
+    def set_access_token(self, access_token=None):
+        """
+        set access token and Github objects
+        :param access_token:
+        :return:
+        """
+        if access_token is not None:
+            self.main = Github(access_token)
+            self.user = self.main.get_user()
+            self.repositories = self.user.get_repos()
+        elif self.isset_access_token() == False:
+            raise Exception('Required argument is missing.')
 
     def __set_github_src_path(self, github_src_path):
         """Setter github src path.
@@ -55,10 +87,12 @@ class ModelGithub():
         """
         return self.__github_src_path
 
-    def get_user_info(self):
+    def get_user_info(self, access_token=None):
         """Get user information.
         :return: dict
         """
+        self.set_access_token(access_token)
+
         # github user informations
         # http://pygithub.readthedocs.io/en/latest/github_objects/AuthenticatedUser.html
         return {
@@ -97,23 +131,27 @@ class ModelGithub():
             'url': self.user.url,
         }
 
-    def get_repo_names(self):
+    def get_repository_names(self, access_token=None):
         """Get repositories name.
         :return: list
         """
+        self.set_access_token(access_token)
+
         names = []
         for repository in self.repositories:
             names.append(repository.name)
         return names
 
-    def get_repo_info(self, repo_name):
+    def get_repository_info(self, repository_name, access_token=None):
         """Get repository information.
-        :param repo_name (string): Repository name
+        :param repository_name (string): Repository name
         :return: dict
         """
+        self.set_access_token(access_token)
+
         # github repository informations
         # http://pygithub.readthedocs.io/en/latest/github_objects/Repository.html
-        repository = self.user.get_repo(repo_name)
+        repository = self.user.get_repo(repository_name)
         information = {
             'archive_url': repository.archive_url,
             'assignees_url': repository.assignees_url,
