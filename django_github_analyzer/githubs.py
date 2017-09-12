@@ -6,6 +6,8 @@ This module for getting information necessary for analysis from Github using the
 
 import os
 import subprocess
+from django_github_analyzer import config
+from django.conf import settings
 from github import Github
 
 
@@ -16,35 +18,56 @@ class ModelGithub():
     """Absolute path of directory of local environment for storing Github's source code.
     If not specified, use environment information about .bashrc (GITHUB_SRC_PATH)
     """
-    __github_src_path = None
+    github_src_path = None
 
     def __init__(self, **args):
         """Initial settings.
         :param args:
             access_token (string): github application access token.
+            private (boolean): Whether to process private repositories
+            fork (boolean): Whether to process fork repositories
             github_src_path (string): github source code save path.
         """
 
         """Main class: Github
-        http://pygithub.readthedocs.io/en/latest/github.html
+        :see: http://pygithub.readthedocs.io/en/latest/github.html
         """
         self.main = None
 
-        # set github access token
-        if 'access_token' in args:
-            self.set_access_token(args['access_token'])
+        # Whether to process private repositories
+        self.private = config.GITHUB_TARGET_REPO_PRIVATE
+        try:
+            self.private = settings.GITHUB_OAUTH_CALLBACK_URI
+        except:
+            pass
+
+        # Whether to process fork repositories
+        self.fork = config.GITHUB_TARGET_REPO_FORK
+        try:
+            self.fork = settings.GITHUB_TARGET_REPO_FORK
+        except:
+            pass
 
         # set github src path
-        if 'github_src_path' in args:
-            self.__set_github_src_path(args['github_src_path'])
-        elif os.environ.get('GITHUB_SRC_PATH') != None:
-            self.__set_github_src_path(os.environ.get('GITHUB_SRC_PATH'))
-        else:
+        if os.environ.get('GITHUB_SRC_PATH') != None:
+            self.set_github_src_path(os.environ.get('GITHUB_SRC_PATH'))
+
+        for key in args:
+            if key == 'github_src_path':
+                self.set_github_src_path(args[key])
+            if key == 'access_token':
+                self.__set_access_token(args[key])
+            if key == 'private':
+                self.private = args[key]
+            if key == 'fork':
+                self.fork = args[key]
+
+        if self.get_github_src_path() == None:
+            # src path from Github is required!
             raise Exception('Required argument is missing.')
 
     def isset_access_token(self):
-        """
-        is set access token
+        """Is set access token
         :return (boolean):
         """
         if self.main is not None:
@@ -52,9 +75,8 @@ class ModelGithub():
         else:
             return False
 
-    def set_access_token(self, access_token=None):
-        """
-        set access token and Github objects
+    def __set_access_token(self, access_token=None):
+        """Set access token and Github objects
         :param access_token (string): user access token
         :return:
         """
@@ -63,24 +85,24 @@ class ModelGithub():
         elif self.isset_access_token() == False:
             raise Exception('Required argument is missing.')
 
-    def __set_github_src_path(self, github_src_path):
+    def set_github_src_path(self, github_src_path):
         """Setter github src path.
         :param github_src_path (string): Absolute path of directory of local environment for storing Github's source code.
         """
-        self.__github_src_path = '/' + github_src_path.strip('/') + '/'
+        self.github_src_path = '/' + github_src_path.strip('/') + '/'
 
     def get_github_src_path(self):
         """Getter github src path.
         :return: string
         """
-        return self.__github_src_path
+        return self.github_src_path
 
     def get_user_info(self, access_token=None):
         """Get user information.
         :param access_token (string): user access token
         :return: dict
         """
-        self.set_access_token(access_token)
+        self.__set_access_token(access_token)
 
         """AuthenticatedUser
         :see: http://pygithub.readthedocs.io/en/latest/github_objects/AuthenticatedUser.html
@@ -130,15 +152,22 @@ class ModelGithub():
         :param access_token (string): user access token
         :return: list
         """
-        self.set_access_token(access_token)
+        self.__set_access_token(access_token)
 
         """Repositories Pagination
         :see: http://pygithub.readthedocs.io/en/latest/github_objects/AuthenticatedUser.html#github.AuthenticatedUser.AuthenticatedUser.get_repos
         """
-        repositories = self.main.get_user().get_repos()
-
         names = []
+        repositories = self.main.get_user().get_repos()
         for repository in repositories:
+            if self.private == False and repository.private == True:
+                # Do not process private repository
+                raise Exception("private:"+repository.name)
+                continue
+            if self.fork == False and repository.fork == True:
+                raise Exception("fork:"+repository.name)
+                # Do not process fork repository
+                continue
             names.append(repository.name)
         return names
 
@@ -148,13 +177,12 @@ class ModelGithub():
         :param access_token (string): user access token
         :return: dict
         """
-        self.set_access_token(access_token)
+        self.__set_access_token(access_token)
 
         """github repository informations
         :see: http://pygithub.readthedocs.io/en/latest/github_objects/Repository.html
         """
         repository = self.main.get_user().get_repo(repository_name)
-
         information = {
             'archive_url': repository.archive_url,
             'assignees_url': repository.assignees_url,
@@ -241,30 +269,6 @@ class ModelGithub():
         except subprocess.CalledProcessError as e:
             return False
 
-    # def git_clone(self, repository_name, access_token=None):
-    #     """Git clone from Github
-    #     :param repository_name (string): Repository name
-    #     :param access_token (string): user access token
-    #     :return (boolean): True: success / False: failed
-    #     """
-    #     self.set_access_token(access_token)
-    #
-    #     # source code save path
-    #     user_information = self.get_user_info()
-    #     user_dir = self.get_github_src_path() + user_information['login'] + '/'
-    #     save_path = user_dir + repository_name
-    #
-    #     if os.path.exists(save_path):
-    #         return True
-    #
-    #     try:
-    #         os.makedirs(user_dir, mode=0o777, exist_ok=True)
-    #         repository_information = self.get_repository_info(repository_name)
-    #         subprocess.run(["git", "clone", repository_information['git_url'], save_path], check=True)
-    #         return True
-    #     except subprocess.CalledProcessError as e:
-    #         return False
-
     def get_repository_info_value(self, param_name, repository_name, access_token=None):
         """Get Value from Git repository information
         :param param_name (string):
@@ -272,6 +276,6 @@ class ModelGithub():
         :param access_token (string): user access token
         :return (string): parameter value
         """
-        self.set_access_token(access_token)
+        self.__set_access_token(access_token)
         repository_information = self.get_repository_info(repository_name)
         return repository_information[param_name] if param_name in repository_information else None
