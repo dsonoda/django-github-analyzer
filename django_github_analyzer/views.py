@@ -1,4 +1,3 @@
-from django.conf import settings
 from django.shortcuts import render
 from django.views import View
 from django_github_analyzer import config
@@ -6,6 +5,7 @@ from django_github_analyzer import models
 from django_github_analyzer import authentications
 from django_github_analyzer import githubs
 from django_github_analyzer import tasks
+from django.conf import settings
 import datetime
 import json
 
@@ -24,7 +24,6 @@ class ServiceCollaborateView(View):
         # 8faf2da99c9b05f15a13b8e37e01e928013660cf
         # github = githubs.ModelGithub()
         # github = githubs.ModelGithub(access_token="8faf2da99c9b05f15a13b8e37e01e928013660cf")
-        # github.set_access_token("8faf2da99c9b05f15a13b8e37e01e928013660cf")
         # raise Exception(github.get_user_info("8faf2da99c9b05f15a13b8e37e01e928013660cf"))
         # raise Exception(github.get_user_info())
         # raise Exception(github.get_user_info())

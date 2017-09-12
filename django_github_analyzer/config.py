@@ -21,6 +21,12 @@ https://developer.github.com/apps/building-integrations/setting-up-and-registeri
 """
 OAUTH_ACCESS_TOKEN_URI = 'https://github.com/login/oauth/access_token'
 
+# Whether to process private repositories
+GITHUB_TARGET_REPO_PRIVATE = False
+
+# Whether to process fork repositories
+GITHUB_TARGET_REPO_FORK = False
+
 """task status
 """
 TASK_STATUS_ISSUED = 1
@@ -35,8 +41,8 @@ TASK_STATUS_CHOICES = (
 # choices
 TASK_STATUS = {
     TASK_STATUS_ISSUED: 'Queue issued',
-    TASK_STATUS_START: 'prosecc start',
-    TASK_STATUS_END: 'prosecc end',
+    TASK_STATUS_START: 'process start',
+    TASK_STATUS_END: 'process end',
 }
 
 """task mode

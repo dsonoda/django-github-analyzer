@@ -147,3 +147,9 @@ GITHUB_OAUTH_BUTTON_VALUE = 'Github OAuth'
 
 # OAuth button input id
 GITHUB_OAUTH_BUTTON_ID = 'github_oauth'
+
+# Whether to process private repositories
+GITHUB_TARGET_REPO_PRIVATE = False
+
+# Whether to process fork repositories
+GITHUB_TARGET_REPO_FORK = False
