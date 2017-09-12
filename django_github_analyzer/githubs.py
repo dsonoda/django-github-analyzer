@@ -35,16 +35,16 @@ class ModelGithub():
         self.main = None
 
         # Whether to process private repositories
-        self.private = config.GITHUB_TARGET_REPO_PRIVATE
+        self.__set_private(config.GITHUB_TARGET_REPO_PRIVATE)
         try:
-            self.private = settings.GITHUB_OAUTH_CALLBACK_URI
+            self.__set_private(settings.GITHUB_OAUTH_CALLBACK_URI)
         except:
             pass
 
         # Whether to process fork repositories
-        self.fork = config.GITHUB_TARGET_REPO_FORK
+        self.__set_fork(config.GITHUB_TARGET_REPO_FORK)
         try:
-            self.fork = settings.GITHUB_TARGET_REPO_FORK
+            self.__set_fork(settings.GITHUB_TARGET_REPO_FORK)
         except:
             pass
 
@@ -58,9 +58,9 @@ class ModelGithub():
             if key == 'access_token':
                 self.__set_access_token(args[key])
             if key == 'private':
-                self.private = args[key]
+                self.__set_private(args[key])
             if key == 'fork':
-                self.fork = args[key]
+                self.__set_fork(args[key])
 
         if self.get_github_src_path() == None:
             # src path from Github is required!
@@ -84,6 +84,32 @@ class ModelGithub():
             self.main = Github(access_token)
         elif self.isset_access_token() == False:
             raise Exception('Required argument is missing.')
+
+    def __set_private(self, private):
+        """Set private
+        :param private
+        :return:
+        """
+        self.private = private
+
+    def get_private(self):
+        """Get private
+        :return (boolean):
+        """
+        return self.private
+
+    def __set_fork(self, fork):
+        """Set fork
+        :param fork
+        :return:
+        """
+        self.fork = fork
+
+    def get_fork(self):
+        """Get fork
+        :return (boolean):
+        """
+        return self.fork
 
     def set_github_src_path(self, github_src_path):
         """Setter github src path.
@@ -160,16 +186,24 @@ class ModelGithub():
         names = []
         repositories = self.main.get_user().get_repos()
         for repository in repositories:
-            if self.private == False and repository.private == True:
-                # Do not process private repository
-                raise Exception("private:"+repository.name)
-                continue
-            if self.fork == False and repository.fork == True:
-                raise Exception("fork:"+repository.name)
-                # Do not process fork repository
-                continue
-            names.append(repository.name)
+            if self.filter_repository_info(private=repository.private, fork=repository.fork):
+                names.append(repository.name)
         return names
+
+    def filter_repository_info(self, **args):
+        """Filter repository informations handled by the system
+        :param args:
+            'private' (boolean): Whether to process private repositories
+            'fork' (boolean): Whether to process fork repositories
+        :return (boolean): True: OK / False: No!
+        """
+        # Do not process private repository
+        if self.get_private() == False and ('private' in args and args['private'] == True):
+            return False
+        # Do not process fork repository
+        if self.get_fork() == False and ('fork' in args and args['fork'] == True):
+            return False
+        return True
 
     def get_repository_info(self, repository_name, access_token=None):
         """Get repository information.

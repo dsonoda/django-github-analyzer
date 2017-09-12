@@ -35,8 +35,8 @@ TASK_STATUS_END = 3
 # model choices
 TASK_STATUS_CHOICES = (
     (TASK_STATUS_ISSUED, 'Queue issued'),
-    (TASK_STATUS_START, 'prosecc start'),
-    (TASK_STATUS_END, 'prosecc end'),
+    (TASK_STATUS_START, 'process start'),
+    (TASK_STATUS_END, 'process end'),
 )
 # choices
 TASK_STATUS = {

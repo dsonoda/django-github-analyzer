@@ -1,29 +1,23 @@
-from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
 from django_github_analyzer import models
 from django_github_analyzer import config
 from django_github_analyzer import tasks
 from django_github_analyzer import githubs
+from django.conf import settings
 import datetime
 import json
 
 class Command(BaseCommand):
+    """Git clone
     """
-    """
-    # def add_arguments(self, parser):
-    #     parser.add_argument('poll_id', nargs='+', type=int)
-
     def handle(self, *args, **options):
         for user_info in models.UserInfo.objects.filter(deleted=False).all():
             github = githubs.ModelGithub(access_token=user_info.access_token)
-            repository_names = github.get_repository_names()
-            for repository_name in repository_names:
-                # Repository update date and time in github
-                github_updated_at = github.get_repository_info_value('updated_at', repository_name)
-                # Repository pull date and time from github
-                repository = models.Repository.objects.get(user_info=user_info, name=repository_name, deleted=False)
-                # if (repository.pull_at is None) or ((repository.pull_at is not None) and (repository.pull_at < github_updated_at)):
-                if True:
+            # Only those repositories that have not yet been git cloned are processed
+            repositories = models.Repository.objects.filter(user_info=user_info, clone_at=None, deleted=False)
+            for repository in repositories:
+                # repository filter by private or fork
+                if github.filter_repository_info(private=repository.private, fork=repository.fork):
                     # Execute parallel processing by Celery for each repository.
                     # issue task queue id
                     queue_id = models.Task.get_queue_id()
@@ -39,10 +33,9 @@ class Command(BaseCommand):
                         # Parallel processing start by Celery. The task queue is thrown to RabbitMQ.
                         result = tasks.git_clone.apply_async(
                             (json.dumps({
+                                'git_url': repository.git_url,
                                 'user_info_login': user_info.login,
-                                'repository_name': repository_name,
+                                'repository_name': repository.name,
                             }),
                              queue_id)
                         )
-        # for poll_id in options['poll_id']:
-        #     self.stdout.write(self.style.SUCCESS('Successfully closed poll "%s"' % poll_id))
