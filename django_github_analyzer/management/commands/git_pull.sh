@@ -13,5 +13,5 @@ eval ${cmd}
 script1="source venv/bin/activate"
 eval ${script1}
 
-script2="python ./manage.py code_analyze"
+script2="python ./manage.py git_pull"
 eval ${script2}

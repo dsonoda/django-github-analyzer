@@ -8,6 +8,6 @@ import datetime
 import json
 
 class Command(BaseCommand):
-    """Code analyze
+    """Git clone
     """
     def handle(self, *args, **options):

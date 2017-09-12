@@ -1,0 +1,8 @@
+# git clone (every day 1:00am)
+0 1 * * * . /vagrant/venv/bin/activate && cd /vagrant && python ./mamage.py git_clone
+
+# git pull (every day 2:00am)
+0 2 * * * . /vagrant/venv/bin/activate && cd /vagrant && python ./mamage.py git_pull
+
+# git pull (every day 3:00am)
+0 3 * * * . /vagrant/venv/bin/activate && cd /vagrant && python ./mamage.py code_analyze
