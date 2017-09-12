@@ -1,9 +1,8 @@
+from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
 from django_github_analyzer import models
-from django_github_analyzer import tasks
 from django_github_analyzer import config
-from django.conf import settings
-
+from django_github_analyzer import tasks
 import datetime
 import json
 
@@ -15,6 +14,14 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         for user_info in models.UserInfo.objects.filter(deleted=False).all():
+
+
+            # models.Repository.objects.filter(user_info=user_info, deleted=False)
+            #
+            # github = githubs.ModelGithub(access_token=user_info.access_token)
+            # repository_names = github.get_repository_names()
+            # for repository_name in repository_names:
+
             # Execute parallel processing by Celery for each user.
             queue_id = models.Task.get_queue_id()
             # regist Task

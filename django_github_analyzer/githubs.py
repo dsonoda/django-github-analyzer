@@ -30,16 +30,6 @@ class ModelGithub():
         """
         self.main = None
 
-        """AuthenticatedUser
-        :see: http://pygithub.readthedocs.io/en/latest/github_objects/AuthenticatedUser.html
-        """
-        self.user = None
-
-        """Repositories Pagination
-        :see: http://pygithub.readthedocs.io/en/latest/github_objects/AuthenticatedUser.html#github.AuthenticatedUser.AuthenticatedUser.get_repos
-        """
-        self.repositories = None
-
         # set github access token
         if 'access_token' in args:
             self.set_access_token(args['access_token'])
@@ -57,7 +47,7 @@ class ModelGithub():
         is set access token
         :return (boolean):
         """
-        if self.main is not None and self.user is not None and self.repositories is not None:
+        if self.main is not None:
             return True
         else:
             return False
@@ -70,8 +60,6 @@ class ModelGithub():
         """
         if access_token is not None:
             self.main = Github(access_token)
-            self.user = self.main.get_user()
-            self.repositories = self.user.get_repos()
         elif self.isset_access_token() == False:
             raise Exception('Required argument is missing.')
 
@@ -94,42 +82,47 @@ class ModelGithub():
         """
         self.set_access_token(access_token)
 
+        """AuthenticatedUser
+        :see: http://pygithub.readthedocs.io/en/latest/github_objects/AuthenticatedUser.html
+        """
+        user = self.main.get_user()
+
         # github user informations
         # http://pygithub.readthedocs.io/en/latest/github_objects/AuthenticatedUser.html
         return {
-            'avatar_url': self.user.avatar_url,
-            'bio': self.user.bio,
-            'blog': self.user.blog,
-            'collaborators': self.user.collaborators,
-            'company': self.user.company,
-            'created_at': str(self.user.created_at),
-            'disk_usage': self.user.disk_usage,
-            'email': self.user.email,
-            'events_url': self.user.events_url,
-            'followers': self.user.followers,
-            'followers_url': self.user.followers_url,
-            'following': self.user.following,
-            'following_url': self.user.following_url,
-            'gists_url': self.user.gists_url,
-            'gravatar_id': self.user.gravatar_id,
-            'hireable': self.user.hireable,
-            'html_url': self.user.html_url,
-            'id': self.user.id,
-            'location': self.user.location,
-            'login': self.user.login,
-            'name': self.user.name,
-            'organizations_url': self.user.organizations_url,
-            'owned_private_repos': self.user.owned_private_repos,
-            'private_gists': self.user.private_gists,
-            'public_gists': self.user.public_gists,
-            'public_repos': self.user.public_repos,
-            'received_events_url': self.user.received_events_url,
-            'repos_url': self.user.repos_url,
-            'starred_url': self.user.starred_url,
-            'subscriptions_url': self.user.subscriptions_url,
-            'total_private_repos': self.user.total_private_repos,
-            'updated_at': str(self.user.updated_at),
-            'url': self.user.url,
+            'avatar_url': user.avatar_url,
+            'bio': user.bio,
+            'blog': user.blog,
+            'collaborators': user.collaborators,
+            'company': user.company,
+            'created_at': str(user.created_at),
+            'disk_usage': user.disk_usage,
+            'email': user.email,
+            'events_url': user.events_url,
+            'followers': user.followers,
+            'followers_url': user.followers_url,
+            'following': user.following,
+            'following_url': user.following_url,
+            'gists_url': user.gists_url,
+            'gravatar_id': user.gravatar_id,
+            'hireable': user.hireable,
+            'html_url': user.html_url,
+            'id': user.id,
+            'location': user.location,
+            'login': user.login,
+            'name': user.name,
+            'organizations_url': user.organizations_url,
+            'owned_private_repos': user.owned_private_repos,
+            'private_gists': user.private_gists,
+            'public_gists': user.public_gists,
+            'public_repos': user.public_repos,
+            'received_events_url': user.received_events_url,
+            'repos_url': user.repos_url,
+            'starred_url': user.starred_url,
+            'subscriptions_url': user.subscriptions_url,
+            'total_private_repos': user.total_private_repos,
+            'updated_at': str(user.updated_at),
+            'url': user.url,
         }
 
     def get_repository_names(self, access_token=None):
@@ -139,8 +132,13 @@ class ModelGithub():
         """
         self.set_access_token(access_token)
 
+        """Repositories Pagination
+        :see: http://pygithub.readthedocs.io/en/latest/github_objects/AuthenticatedUser.html#github.AuthenticatedUser.AuthenticatedUser.get_repos
+        """
+        repositories = self.main.get_user().get_repos()
+
         names = []
-        for repository in self.repositories:
+        for repository in repositories:
             names.append(repository.name)
         return names
 
@@ -152,9 +150,11 @@ class ModelGithub():
         """
         self.set_access_token(access_token)
 
-        # github repository informations
-        # http://pygithub.readthedocs.io/en/latest/github_objects/Repository.html
-        repository = self.user.get_repo(repository_name)
+        """github repository informations
+        :see: http://pygithub.readthedocs.io/en/latest/github_objects/Repository.html
+        """
+        repository = self.main.get_user().get_repo(repository_name)
+
         information = {
             'archive_url': repository.archive_url,
             'assignees_url': repository.assignees_url,
@@ -240,9 +240,6 @@ class ModelGithub():
             return True
         except subprocess.CalledProcessError as e:
             return False
-
-
-
 
     # def git_clone(self, repository_name, access_token=None):
     #     """Git clone from Github

@@ -1,10 +1,13 @@
+from django.conf import settings
 from django.shortcuts import render
 from django.views import View
+from django_github_analyzer import config
 from django_github_analyzer import models
 from django_github_analyzer import authentications
 from django_github_analyzer import githubs
-from django_github_analyzer import config
-from django.conf import settings
+from django_github_analyzer import tasks
+import datetime
+import json
 
 
 class ServiceCollaborateView(View):
@@ -20,12 +23,13 @@ class ServiceCollaborateView(View):
 
         # 8faf2da99c9b05f15a13b8e37e01e928013660cf
         # github = githubs.ModelGithub()
-        github = githubs.ModelGithub(access_token="8faf2da99c9b05f15a13b8e37e01e928013660cf")
+        # github = githubs.ModelGithub(access_token="8faf2da99c9b05f15a13b8e37e01e928013660cf")
         # github.set_access_token("8faf2da99c9b05f15a13b8e37e01e928013660cf")
         # raise Exception(github.get_user_info("8faf2da99c9b05f15a13b8e37e01e928013660cf"))
         # raise Exception(github.get_user_info())
-        res = github.git_clone('git://github.com/dsonoda/template-tweeter.git', 'dsonoda', 'template-tweeter')
-        raise Exception(res)
+        # raise Exception(github.get_user_info())
+        # res = github.git_clone('git://github.com/dsonoda/template-tweeter.git', 'dsonoda', 'template-tweeter')
+        # raise Exception(res)
 
 
 
@@ -69,22 +73,34 @@ class OauthCallbackView(View):
         # get access token
         oauth = authentications.Oauth()
         access_token = oauth.get_access_token(request.GET.get('code'))
-
-        # github object
-        github = githubs.ModelGithub()
-
-        # get github user information & regist to database
-        user_info = github.get_user_info(access_token)
-        models.UserInfo.objects.regist_data(user_info['login'], access_token, user_info)
-
+        # github object (about this user)
+        github = githubs.ModelGithub(access_token=access_token)
+        # get github user information
+        github_user_info = github.get_user_info()
+        # regist github user information to database
+        models.UserInfo.objects.regist_data(github_user_info['login'], access_token, github_user_info)
+        user_info = models.UserInfo.objects.get(login=github_user_info['login'], deleted=False)
         # get github repository information & regist to database
-        user_info = models.UserInfo.objects.get(login=user_info['login'], deleted=False)
-        repository_names = github.get_repository_names(access_token)
+        repository_names = github.get_repository_names()
         for repository_name in repository_names:
-            models.Repository.objects.regist_data(
-                user_info,
-                repository_name,
-                github.get_repository_info(repository_name, access_token)
-            )
-
+            """Execute parallel processing by Celery for each repository.
+            """
+            # issue task queue id
+            queue_id = models.Task.get_queue_id()
+            # Task status regist with 'issue'
+            if models.Task.objects.create(
+                queue_id=queue_id,
+                status=config.TASK_STATUS_ISSUED,
+                mode=config.TASK_MODE_REPOSITORY_INFO_REGIST,
+                user_info=user_info,
+                start=datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            ).id:
+                # Parallel processing start by Celery. The task queue is thrown to RabbitMQ.
+                result = tasks.regist_repository.apply_async(
+                    (json.dumps({
+                        'user_info_login': user_info.login,
+                        'repository_name': repository_name,
+                    }),
+                    queue_id)
+                )
         return render(request, 'django_github_analyzer/oauth_callback.html', {})

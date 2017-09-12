@@ -7,7 +7,7 @@ class UserInfoAdmin(admin.ModelAdmin):
 
 @admin.register(models.Repository)
 class RepositoryAdmin(admin.ModelAdmin):
-    list_display = ('full_name', 'language', 'git_url', 'private', 'fork', 'updated_at', 'pull_at', 'deleted')
+    list_display = ('full_name', 'language', 'git_url', 'private', 'fork', 'clone_at', 'pull_at', 'analysis_at', 'deleted')
 
 @admin.register(models.Task)
 class TaskAdmin(admin.ModelAdmin):
