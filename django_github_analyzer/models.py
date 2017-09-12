@@ -2,6 +2,7 @@ from django.db import models
 from django_github_analyzer import config
 import json
 import datetime
+from hashlib import md5
 import time
 
 
@@ -120,10 +121,7 @@ class UserInfo(models.Model):
     params = models.TextField(null=True)
     # registed datetime
     created = models.DateTimeField(auto_now_add=True)
-    """delete flg
-        True: record not used in the system
-        False: record used in the system
-    """
+    # delete flg
     deleted = models.BooleanField(u'delete flg', default=False)
 
     objects = UserInfoManager()
@@ -334,14 +332,13 @@ class Repository(models.Model):
     clone_at = models.DateTimeField(null=True)
     # Git pull date from Github
     pull_at = models.DateTimeField(null=True)
+    # analysis date
+    analysis_at = models.DateTimeField(null=True)
     # Github other data（format:JSON）
     params = models.TextField(null=True)
     # Analyzed result values（format:JSON）
     analysis_result = models.TextField(null=True)
-    """delete flg
-        True: record not used in the system
-        False: record used in the system
-    """
+    # delete flg
     deleted = models.BooleanField(u'delete flg', default=False)
 
     objects = RepositoryManager()
@@ -356,7 +353,9 @@ class TaskQuerySet(models.query.QuerySet):
         """
         Get Task status
         :param mode (integer): see: config.TASK_MODE_CHOICES
-        :param args (dict): key is 'queue_id' or ('user_info_login' and 'repository_name')
+        :param args (dict):
+            'queue_id'
+            ('user_info_login' and 'repository_name')
         :return (integer): config.TASK_STATUS_CHOICES key
         """
         obj = self.filter(mode=mode, deleted=False)
@@ -394,16 +393,13 @@ class Task(models.Model):
     start = models.DateTimeField(auto_now_add=True)
     # end datetime
     end = models.DateTimeField(null=True, blank=True)
-    """delete flg
-        True: record not used in the system
-        False: record used in the system
-    """
+    # delete flg
     deleted = models.BooleanField(u'delete flg', default=False)
 
     objects = TaskManager()
 
     def __str__(self):
-        return self.name
+        return self.queue_id
 
     @classmethod
     def get_queue_id(cls):
